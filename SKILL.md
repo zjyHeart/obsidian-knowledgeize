@@ -1,6 +1,6 @@
 ---
 name: obsidian-knowledgeize
-description: Convert ordinary Markdown notes into Obsidian knowledge-base notes with frontmatter, tags, bidirectional links, navigation blocks, and knowledge-oriented structure. Use when Codex needs to knowledgeize one or more .md notes, add wiki links to related notes in the same vault, improve note discoverability, or turn linear notes into reusable knowledge cards without reading the entire vault into context.
+description: Convert ordinary Markdown notes into Obsidian knowledge-base notes with frontmatter, tags, bidirectional links, navigation blocks, Markdown cleanup, and knowledge-oriented structure. Use when Codex needs to knowledgeize one or more .md notes, clean up GPT-pasted Markdown for Obsidian, add wiki links to related notes in the same vault, improve note discoverability, or turn linear notes into reusable knowledge cards without reading the entire vault into context.
 ---
 
 # Obsidian Knowledgeize
@@ -8,6 +8,8 @@ description: Convert ordinary Markdown notes into Obsidian knowledge-base notes 
 Convert a plain Markdown note into an Obsidian-friendly knowledge note while keeping token use under control.
 
 Prefer repository-aware linking over generic rewriting. Improve structure and retrieval value first; rewrite prose only when the user explicitly asks.
+
+Before adding links, normalize the Markdown so it renders well in Obsidian.
 
 ## Core Rule
 
@@ -27,6 +29,7 @@ If the vault is large, title-only discovery is the default behavior, not an opti
 
 When knowledgeizing a note, prefer these upgrades:
 
+- Normalize GPT-pasted Markdown into Obsidian-friendly Markdown.
 - Add YAML frontmatter with concise tags and aliases when justified.
 - Add a short `Knowledge Position` or `Note Position` section near the top.
 - Add `Related Notes and Navigation` or an equivalent navigation section near the bottom.
@@ -37,7 +40,31 @@ Do not force all sections if the note type does not need them.
 
 ## Workflow
 
-### 1. Classify the target note
+### 1. Normalize Markdown for Obsidian
+
+Clean formatting problems before doing knowledge links.
+
+Always check for these issues in pasted GPT output:
+
+- extra blank lines inside list items
+- broken list continuity caused by empty lines
+- inline math written as `\(...\)` instead of `$...$`
+- display math written as `\[...\]` instead of `$$...$$`
+- LaTeX blocks wrapped in a way that Obsidian does not render well
+- headings, callouts, or blockquotes separated by unnecessary blank lines
+
+Apply these conversions conservatively:
+
+- Convert `\(...\)` to `$...$` for inline math.
+- Convert `\[...\]` to `$$...$$` for display math.
+- Keep existing `$...$` and `$$...$$` unchanged unless broken.
+- Remove blank lines between consecutive list items when they are part of the same list.
+- Remove blank lines between a list marker and its immediate continuation paragraph when that blank line breaks rendering.
+- Preserve blank lines that intentionally separate different blocks.
+
+Do not blindly rewrite all backslashes or all parentheses. Only normalize clear math delimiters.
+
+### 2. Classify the target note
 
 Decide what kind of note it is before linking:
 
@@ -51,7 +78,7 @@ Decide what kind of note it is before linking:
 
 This determines what metadata and links are appropriate.
 
-### 2. Build a cheap vault index
+### 3. Build a cheap vault index
 
 Discover only titles and paths first. Prefer fast file listing commands such as `rg --files -g "*.md"` or equivalent.
 
@@ -64,7 +91,7 @@ From paths and filenames, infer:
 
 Do not open note bodies yet.
 
-### 3. Choose candidate notes
+### 4. Choose candidate notes
 
 Select candidates using cheap signals:
 
@@ -79,7 +106,7 @@ Keep the candidate set small. A good default is 3 to 8 notes.
 
 If a relationship is obvious from title alone, linking without reading the candidate body is acceptable. Example: a note named `NLP-KB-Overview.md` is clearly a hub page.
 
-### 4. Read only the candidates that matter
+### 5. Read only the candidates that matter
 
 Open candidate bodies only when title evidence is insufficient to justify linking.
 
@@ -91,7 +118,7 @@ Prioritize candidates that may answer one of these questions:
 
 Stop reading once the link set is good enough. Do not keep exploring for completeness.
 
-### 5. Edit conservatively
+### 6. Edit conservatively
 
 Default to structure-preserving enhancement:
 
@@ -155,9 +182,52 @@ By default:
 - do not aggressively paraphrase
 - do not reorganize every section
 
-You may lightly normalize headings, add short framing blocks, and fix obvious structure issues.
+You may lightly normalize headings, add short framing blocks, fix obvious structure issues, and repair Obsidian Markdown rendering problems.
 
 Only do substantial rewriting when the user explicitly asks for summarization, polishing, or refactoring.
+
+## Markdown Cleanup Rules
+
+Treat Markdown cleanup as a first-class part of this skill when the source text appears to come from GPT or another chat model.
+
+### List cleanup
+
+When a numbered list or bullet list has empty lines between items, prefer compact Obsidian-friendly lists unless the blank lines are clearly intentional.
+
+Bad pattern:
+
+```text
+1. item one
+
+2. item two
+```
+
+Preferred pattern:
+
+```text
+1. item one
+2. item two
+```
+
+Apply the same rule to bullet lists.
+
+### Math cleanup
+
+Prefer Obsidian math delimiters:
+
+- inline math: `$...$`
+- display math: `$$...$$`
+
+Common conversions:
+
+- `\(x_1, x_2, \dots, x_n\)` -> `$x_1, x_2, \dots, x_n$`
+- `\[\sum_i x_i\]` -> `$$\sum_i x_i$$`
+
+If display math is multiline, keep it inside a `$$` block without adding extra prose inside the delimiters.
+
+### Safe handling
+
+Do not alter code fences, inline code, or literal backslash examples when applying Markdown cleanup.
 
 ## Batch Mode
 
@@ -173,3 +243,4 @@ Do not preload the whole vault.
 ## References
 
 Read [references/linking-strategy.md](references/linking-strategy.md) when you need the detailed candidate-selection and stop-reading heuristics.
+Read [references/markdown-cleanup.md](references/markdown-cleanup.md) when the note contains GPT-pasted lists, formulas, or formatting that renders poorly in Obsidian.
