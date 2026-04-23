@@ -1,5 +1,7 @@
 # obsidian-knowledgeize
 
+Chinese version: [README.zh-CN.md](./README.zh-CN.md)
+
 `obsidian-knowledgeize` is a Codex skill for turning ordinary Markdown notes into Obsidian-friendly knowledge-base notes.
 
 It is designed for vault-scale note enhancement with controlled token usage:
