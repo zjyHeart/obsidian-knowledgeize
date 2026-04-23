@@ -1,0 +1,4 @@
+interface:
+  display_name: "Obsidian Knowledgeize"
+  short_description: "Turn plain Markdown into linked knowledge notes"
+  default_prompt: "Use $obsidian-knowledgeize to convert this Markdown note into an Obsidian knowledge-base note with tags and bidirectional links."
